@@ -6,7 +6,7 @@ routes.get('/', (req, res) => {
   res.status(200).send('API Teste para upload de audio')
 });
 
-routes.post("/posts", multer(multerConfig).single("file"), async (req, res) => {
+routes.post("/posts", multer(multerConfig).single("file"), (req, res) => {
   const { originalname: name, size, key, location: url = '' } = req.file;
   const post = {
     name,
