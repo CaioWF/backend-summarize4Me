@@ -1,8 +1,8 @@
-const routes = require("express").Router();
+const router = require("express").Router();
 const multer = require("multer");
 const multerConfig = require("./config/multer");
 
-routes.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.status(200).send('API Teste para upload de audio')
 });
 
@@ -14,4 +14,4 @@ router.get('/summaries/:summaryId', summaryController.get);
 router.put('/summaries/:summaryId', summaryController.update);
 router.delete('/summaries/:summaryId', summaryController.remove);
 
-module.exports = routes;
+module.exports = router;

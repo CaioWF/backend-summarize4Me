@@ -21,7 +21,7 @@ const storageTypes = {
     }),
     s3: multerS3({
         s3: new aws.S3(),
-        bucket: 'summarize4Me/audios',
+        bucket: 'summarize4me/audios',
         contentType: multerS3.AUTO_CONTENT_TYPE,
         acl: 'public-read',
         key: (req, file, cb) => {
