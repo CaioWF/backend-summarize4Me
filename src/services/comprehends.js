@@ -2,26 +2,26 @@ const aws = require("aws-sdk");
 
 var comprehend = new AWS.Comprehend();
 
-const criarJob = options => {
+const createJob = (jobName, uriOrigin, languageCode) => {
     var params = {
-        DataAccessRoleArn, /* required */
+        DataAccessRoleArn: 'STRINGVALUE', /* required */
         InputDataConfig: { /* required */
-          S3Uri, /* required */
-          InputFormat
+          S3Uri: uriOrigin, /* required */
+          InputFormat: 'ONE_DOC_PER_FILE'
         },
-        LanguageCode, /* required */
+        LanguageCode: languageCode, /* required */
         OutputDataConfig: { /* required */
-          S3Uri: 'comprehendsteste', /* required */
+          S3Uri: 'summarize4Me/comprehend-files', /* required */
         },
-        JobName,
-        /*VpcConfig: {
+        JobName: jobName,
+        VpcConfig: {
           SecurityGroupIds: [ // required
             'STRING_VALUE',
           ],
           Subnets: [ // required
             'STRING_VALUE',
           ]
-        }*/
+        }
       };
 
       comprehend.startKeyPhrasesDetectionJob(params, function(err, data) {
@@ -34,5 +34,5 @@ const criarJob = options => {
 };
 
 module.exports = {
-    criarJob
+    createJob
 }

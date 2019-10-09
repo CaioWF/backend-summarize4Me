@@ -1,27 +1,33 @@
 const aws = require("aws-sdk");
+const comprehend = require("../services/comprehends");
 
 var transcribeservice = new aws.TranscribeService();
 
-const criarJob = options => {
+const createJob = (id, name, languageCode, uriOrigin, callback) => {
+  
+  
   var params = {
-    LanguageCode,
+    LanguageCode: languageCode,
     Media: {
-      MediaFileUri: options.uri
+      MediaFileUri: uriOrigin
     },
-    TranscriptionJobName,
-    MediaFormat,
-    OutputBucketName: "transcricoesteste"
+    TranscriptionJobName: id + "-" + name,
+    OutputBucketName: "summarize4Me/transcribed-files"
+    /*MediaFormat: mp3 | mp4 | wav | flac,
+  MediaSampleRateHertz: 'NUMBER_VALUE',
+  OutputEncryptionKMSKeyId: 'STRING_VALUE',
+  Settings: {
+    ChannelIdentification: true || false,
+    MaxSpeakerLabels: 'NUMBER_VALUE',
+    ShowSpeakerLabels: true || false,
+    VocabularyName: 'STRING_VALUE'
+  }*/
   };
 
-  transcribeservice.startTranscriptionJob(params, function(err, data) {
-    if (err) console.log(err, err.stack);
-    else {
-        console.log("Success", data);
-        return data;
-    };
-  });
+  transcribeservice.startTranscriptionJob(params, callback);
+  
 };
 
 module.exports = {
-    criarJob
-}
+  createJob
+};

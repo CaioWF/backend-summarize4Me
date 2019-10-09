@@ -1,9 +1,10 @@
 const Summary = require('../models/Summary');
+const summarizationController = require('./summarizationController');
 
 const create = async (req, res) => {
     try {
         const newSummary = await Summary.create(req.body);
-
+        summarizationController.summarizationProccess(newSummary, req.file.location);
         return res.status(201).send({ newSummary });
     } catch (err) {
         return res.status(400).send({ error: 'Error creating new summary' });
