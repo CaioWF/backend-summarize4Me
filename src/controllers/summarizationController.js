@@ -1,7 +1,8 @@
 const aws = require("aws-sdk");
 const multer = require("multer");
-var fs = require('fs');
-var s3 = require('../services/s3Service');
+const fs = require('fs');
+const s3Service = require('../services/s3Service');
+const comprehendService = require('../services/comprehendsService');
 
 const summarizationProccess = (summary, uri) => {
   try {
@@ -18,9 +19,10 @@ const callbackTranscribe = (err, data) => {
           console.error(err);
       }
     });
-    var pathTranscribedFile = s3.uploadToBucket('summarize4me-files/transcribed-files', '/tmp/'+data.jobName+'.txt');
+    var pathTranscribedFile = s3Service.uploadFile('summarize4me-files', 'transcribed-files', '/tmp/'+data.jobName+'.txt');
+    //Provavelmente vai ter que dar um sleep aqui também pq ta usando o upload
     //TEM QUE VER UM JEITO DELE PEGAR ESSA LANGUAGE CODE
-    comprehend.createJob(data.jobName, pathTranscribedFile, 'pt');
+    comprehendService.createJob(data.jobName, pathTranscribedFile, 'pt');
     console.log("Success", data);
     return data;
   }

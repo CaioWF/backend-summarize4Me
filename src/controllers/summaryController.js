@@ -21,6 +21,7 @@ const create = async (req, res) => {
         
         await sleep(20000);
         
+        //USAR O summarizationController pra pegar a callback do transcribe
         transcribeService.createJob(fileName, 'pt-BR', s3FilePath, (err, data) => {
             console.log(err);
         });

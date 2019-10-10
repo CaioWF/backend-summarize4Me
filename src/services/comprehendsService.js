@@ -3,14 +3,14 @@ const aws = require("aws-sdk");
 const dotenv = require('dotenv');
 dotenv.config()
 
-const comprehend = new AWS.Comprehend();
+const comprehendService = new AWS.Comprehend();
 
-const createKeyPhrasesDetectionJob = (jobName, S3Uri, languageCode, callbackFunction) => {
+const createKeyPhrasesDetectionJob = (jobName, s3Uri, languageCode, callbackFunction) => {
   let params = {
     JobName: jobName,
     DataAccessRoleArn: 'STRINGVALUE',
     InputDataConfig: {
-      S3Uri: S3Uri,
+      S3Uri: s3Uri,
       InputFormat: 'ONE_DOC_PER_FILE'
     },
     LanguageCode: languageCode,
@@ -27,7 +27,7 @@ const createKeyPhrasesDetectionJob = (jobName, S3Uri, languageCode, callbackFunc
     // }
   };
 
-  comprehend.startKeyPhrasesDetectionJob(params, callbackFunction);
+  comprehendService.startKeyPhrasesDetectionJob(params, callbackFunction);
 };
 
 module.exports = { createKeyPhrasesDetectionJob }
