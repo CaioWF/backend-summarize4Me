@@ -1,7 +1,7 @@
 const aws = require("aws-sdk");
 const multer = require("multer");
 var fs = require('fs');
-var s3 = require('../services/s3');
+var s3 = require('../services/s3Service');
 
 const summarizationProccess = (summary, uri) => {
   try {
@@ -18,7 +18,7 @@ const callbackTranscribe = (err, data) => {
           console.error(err);
       }
     });
-    var pathTranscribedFile = s3.uploadToBucket('summarize4Me/transcribed-files', '/tmp/'+data.jobName+'.txt');
+    var pathTranscribedFile = s3.uploadToBucket('summarize4me-files/transcribed-files', '/tmp/'+data.jobName+'.txt');
     //TEM QUE VER UM JEITO DELE PEGAR ESSA LANGUAGE CODE
     comprehend.createJob(data.jobName, pathTranscribedFile, 'pt');
     console.log("Success", data);

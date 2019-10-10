@@ -1,12 +1,43 @@
-const Summary = require('../models/Summary');
+// const Summary = require('../models/Summary');
 const summarizationController = require('./summarizationController');
+
+const s3Service = require('../services/s3Service');
+
+const saveFileLocally = require('../utils/saveFileLocally');
+
+const formidable = require('formidable');
+const fs = require('fs');
 
 const create = async (req, res) => {
     try {
-        const newSummary = await Summary.create(req.body);
-        summarizationController.summarizationProccess(newSummary, req.file.location);
+        // const newSummary = await Summary.create(req.body);
+        
+        newSummary = {
+            id: 1,
+            title: 'Testing',
+            content: [],
+            status: 'Pending',
+            languageCode: 'pt-br',
+            createdAt: ''
+        }
+
+        let form = new formidable.IncomingForm();
+        form.parse(req, (error, fields, files) => {
+            let oldPath = files.file.path;
+            let newPath = 'C:\\Users\\publi\\Downloads\\test\\' + files.file.name;
+
+            fs.rename(oldPath, newPath, (err) => {
+                if (err) throw err;
+            });
+
+            s3Service.uploadFile('summarize4me-files/audios', newPath);
+        });
+
+        // summarizationController.summarizationProccess(newSummary, req.file.location);
+
         return res.status(201).send({ newSummary });
     } catch (err) {
+        console.log(err);
         return res.status(400).send({ error: 'Error creating new summary' });
     }
 }
