@@ -8,8 +8,6 @@ const Summary = require('../models/Summary');
 const s3Service = require('../services/s3Service');
 const transcribeService = require('../services/transcribeService');
 
-const saveFileLocally = require('../utils/saveFileLocally');
-
 const create = async (req, res) => {
     try {
         const newSummary = await Summary.create(req.body);
@@ -61,11 +59,5 @@ const remove = async (req, res) => {
         return res.status(400).send({ error: 'Error removing summary' });
     }
 }
-
-const sleep = (ms) => {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-};
 
 module.exports = { create, list, get, update, remove };

@@ -3,6 +3,7 @@ const multer = require("multer");
 const fs = require('fs');
 const s3Service = require('../services/s3Service');
 const comprehendService = require('../services/comprehendsService');
+const saveFileLocally = require('../utils/saveFileLocally');
 
 const initSummarization = (summary, file) => {
   try {
@@ -10,9 +11,45 @@ const initSummarization = (summary, file) => {
     const s3FilePath = uploadToBucket(fileName, file);
     await sleep(20000);
     transcribeService.createJob(fileName, 'pt-BR', s3FilePath, callbackTranscribe);
+    let transcribedFileText = getTranscriptionJobOutput(fileName);
+    let pathTranscribedFile = saveTranscription(jobName, transcribedFileText);
+    await sleep(20000);
+    comprehendService.createJob(fileName, pathTranscribedFile, 'pt');
   } catch (err) {
     console.log(err)
   }
+};
+
+const saveTranscription = (jobName, transcribedFileText) => {
+  fs.writeFile("/tmp/"+jobName+".txt", JSON.stringify(transcribedFileText), (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+  return s3Service.uploadFile('summarize4me-files', 'transcribed-files', '/tmp/'+data.jobName+'.txt');
+}
+
+const getTranscriptionJobOutput = (fileName) => {
+  let loop = true;
+  while(loop){
+    await sleep(20000);
+    let job = transcribeService.getTranscriptionJob(fileName, (err, data) => {
+      let status = data.TranscriptionJobStatus;
+      if( status === 'COMPLETED') {
+        loop = false;
+        return data.Transcript.TranscriptFileUri;
+      } else if (status === 'FAILED') {
+            loop = false;
+            throw err;
+          }
+    });
+  }
+}
+
+const sleep = (ms) => {
+  return new Promise(resolve => {
+      setTimeout(resolve, ms);
+  });
 };
 
 const uploadToBucket = (fileName, file) => {
@@ -23,17 +60,7 @@ const uploadToBucket = (fileName, file) => {
 const callbackTranscribe = (err, data) => {
   if (err) console.log(err, err.stack);
   else {
-    fs.writeFile("/tmp/"+data.jobName+".txt", JSON.stringify(data.results.transcripts[0].transcript), (err) => {
-      if (err) {
-          console.error(err);
-      }
-    });
-    var pathTranscribedFile = s3Service.uploadFile('summarize4me-files', 'transcribed-files', '/tmp/'+data.jobName+'.txt');
-    //Provavelmente vai ter que dar um sleep aqui também pq ta usando o upload
-    //TEM QUE VER UM JEITO DELE PEGAR ESSA LANGUAGE CODE
-    comprehendService.createJob(data.jobName, pathTranscribedFile, 'pt');
     console.log("Success", data);
-    return data;
   }
 };
 
