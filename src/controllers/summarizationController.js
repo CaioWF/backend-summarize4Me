@@ -4,12 +4,21 @@ const fs = require('fs');
 const s3Service = require('../services/s3Service');
 const comprehendService = require('../services/comprehendsService');
 
-const summarizationProccess = (summary, uri) => {
+const initSummarization = (summary, file) => {
   try {
-    transcribe.createJob(summary.id, summary.title, summary.languageCode, uri, callbackTranscribe);
-    
-  } catch (err) {}
+    let fileName = newSummary.id + '-' + newSummary.title;
+    const s3FilePath = uploadToBucket(fileName, file);
+    await sleep(20000);
+    transcribeService.createJob(fileName, 'pt-BR', s3FilePath, callbackTranscribe);
+  } catch (err) {
+    console.log(err)
+  }
 };
+
+const uploadToBucket = (fileName, file) => {
+  let filePath = saveFileLocally.saveFileLocally(file, fileName);
+  return await s3Service.uploadFile(process.env.AUDIO_BUCKET, 'audios', filePath);
+}
 
 const callbackTranscribe = (err, data) => {
   if (err) console.log(err, err.stack);
@@ -36,4 +45,4 @@ const callbackComprehend = (err, data) => {
   }
 };
 
-module.exports = { summarizationProccess };
+module.exports = { initSummarization };

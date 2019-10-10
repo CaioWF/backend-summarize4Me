@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config();
+const summarizationController = require('../controllers/summarizationController');
 
 
 const Summary = require('../models/Summary');
@@ -13,18 +14,7 @@ const create = async (req, res) => {
     try {
         const newSummary = await Summary.create(req.body);
 
-        let file = req.files.file;
-        let fileName = newSummary.id + '-' + newSummary.title;
-        let filePath = saveFileLocally.saveFileLocally(file, fileName);
-
-        const s3FilePath = await s3Service.uploadFile(process.env.AUDIO_BUCKET, 'audios', filePath);
-        
-        await sleep(20000);
-        
-        //USAR O summarizationController pra pegar a callback do transcribe
-        transcribeService.createJob(fileName, 'pt-BR', s3FilePath, (err, data) => {
-            console.log(err);
-        });
+        summarizationController.initSummarization(newSummary, req.files.file);
 
         return res.status(201).send({ newSummary });
     } catch (err) {
