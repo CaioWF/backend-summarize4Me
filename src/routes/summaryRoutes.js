@@ -1,10 +1,7 @@
-const router = require("express").Router();
+const express = require('express');
+const summaryController = require('../controllers/summaryController');
 
-router.get('/', (req, res) => {
-  res.status(200).send('API Teste para upload de audio')
-});
-
-const summaryController = require('./controllers/summaryController')
+const router = express.Router();
 
 router.post('/summaries', summaryController.create);
 router.get('/summaries', summaryController.list);

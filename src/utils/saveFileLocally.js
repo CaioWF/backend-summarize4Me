@@ -1,22 +1,18 @@
-const fs = require('fs');
-const formidable = require('formidable');
+const fileUpload = require('express-fileupload');
 
-const saveFileLocally = (req) => {
-    let form = new formidable.IncomingForm();
-    let newFilePath = 'C:\\Users\\publi\\Downloads\\test\\';
+const saveFileLocally = (file, newName) => {
+    let filePath = 'C:\\Users\\publi\\Downloads\\test\\' + newName + '.' + getFileExtension(file.name);
 
-    console.log(req.file);
-
-    form.parse(req, (error, fields, files) => {
-        let oldPath = files.file.path;
-        newFilePath += files.file.name;
-
-        fs.rename(oldPath, newFilePath, (err) => {
-            if (err) throw err;
-        });
+    file.mv(filePath, (err) => {
+        if (err)
+            throw err;
     });
 
-    return newFilePath;
+    return filePath;
 };
+
+const getFileExtension = (fileName) => {
+    return fileName.split('.').pop();
+}
 
 module.exports = { saveFileLocally }

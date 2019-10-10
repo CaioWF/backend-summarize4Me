@@ -1,38 +1,33 @@
 const aws = require("aws-sdk");
 
-var comprehend = new AWS.Comprehend();
+const dotenv = require('dotenv');
+dotenv.config()
 
-const createJob = (jobName, uriOrigin, languageCode) => {
-    var params = {
-        DataAccessRoleArn: 'STRINGVALUE', /* required */
-        InputDataConfig: { /* required */
-          S3Uri: uriOrigin, /* required */
-          InputFormat: 'ONE_DOC_PER_FILE'
-        },
-        LanguageCode: languageCode, /* required */
-        OutputDataConfig: { /* required */
-          S3Uri: 'summarize4Me/comprehend-files', /* required */
-        },
-        JobName: jobName,
-        VpcConfig: {
-          SecurityGroupIds: [ // required
-            'STRING_VALUE',
-          ],
-          Subnets: [ // required
-            'STRING_VALUE',
-          ]
-        }
-      };
+const comprehend = new AWS.Comprehend();
 
-      comprehend.startKeyPhrasesDetectionJob(params, function(err, data) {
-        if (err) console.log(err, err.stack);
-        else {
-            console.log(data);
-            return data;
-        }
-      });
+const createKeyPhrasesDetectionJob = (jobName, S3Uri, languageCode, callbackFunction) => {
+  let params = {
+    JobName: jobName,
+    DataAccessRoleArn: 'STRINGVALUE',
+    InputDataConfig: {
+      S3Uri: S3Uri,
+      InputFormat: 'ONE_DOC_PER_FILE'
+    },
+    LanguageCode: languageCode,
+    OutputDataConfig: {
+      S3Uri: process.env.COMPREHEND_BUCKET
+    },
+    // VpcConfig: {
+    //   SecurityGroupIds: [ // required
+    //     'STRING_VALUE',
+    //   ],
+    //   Subnets: [ // required
+    //     'STRING_VALUE',
+    //   ]
+    // }
+  };
+
+  comprehend.startKeyPhrasesDetectionJob(params, callbackFunction);
 };
 
-module.exports = {
-    createJob
-}
+module.exports = { createKeyPhrasesDetectionJob }
