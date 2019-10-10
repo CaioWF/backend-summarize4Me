@@ -1,75 +1,87 @@
-const aws = require("aws-sdk");
-const multer = require("multer");
 const fs = require('fs');
 const s3Service = require('../services/s3Service');
-const comprehendService = require('../services/comprehendsService');
+const transcribeService = require('../services/transcribeService');
+const comprehendService = require('../services/comprehendService');
 const saveFileLocally = require('../utils/saveFileLocally');
 
-const initSummarization = (summary, file) => {
+const initSummarization = async (summary, file) => {
   try {
-    let fileName = newSummary.id + '-' + newSummary.title;
-    const s3FilePath = uploadToBucket(fileName, file);
-    await sleep(20000);
-    transcribeService.createJob(fileName, 'pt-BR', s3FilePath, callbackTranscribe);
-    let transcribedFileText = getTranscriptionJobOutput(fileName);
-    let pathTranscribedFile = saveTranscription(jobName, transcribedFileText);
-    await sleep(20000);
-    comprehendService.createJob(fileName, pathTranscribedFile, 'pt');
+    let key = summary.id + '-' + summary.title;
+
+    let remoteAudioFilePath = uploadAudioFileToS3(file, key);
+
+    transcribeService.createJob(key, 'pt-BR', remoteAudioFilePath, (err, data) => {
+      if (err)
+        throw err;
+    });
+
+    onTranscribeJobFinish(key, success => {
+      if (success) {
+        // Download transcript from s3
+      }
+    });
+
+    let localTranscriptionFile = extractTranscriptionFromTranscriptionFile('./uploads/transcriptions/' + key + '.json');
+    let remoteTranscriptionFile = s3Service.uploadFile(process.env.TRANSCRIPT_BUCKET + '/transcript', key, localTranscriptionFile);
+
+    comprehendService.createKeyPhrasesDetectionJob(key, remoteTranscriptionFile, 'pt', (err, data) => {
+      if (err)
+        throw err;
+    });
+
+    onComprehendJobFinish(key, success => {
+      if (success) {
+        // Download comprehend from s3
+      }
+    });
+
   } catch (err) {
-    console.log(err)
+    throw err;
   }
 };
 
-const saveTranscription = (jobName, transcribedFileText) => {
-  fs.writeFile("/tmp/"+jobName+".txt", JSON.stringify(transcribedFileText), (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
-  return s3Service.uploadFile('summarize4me-files', 'transcribed-files', '/tmp/'+data.jobName+'.txt');
+const uploadAudioFileToS3 = (file, key) => {
+  let localFilePath = saveFileLocally.saveFileLocallyFromRequest(file, key);
+
+  return s3Service.uploadFile(process.env.AUDIO_BUCKET + '/audios', key, localFilePath);
 }
 
-const getTranscriptionJobOutput = (fileName) => {
-  let loop = true;
-  while(loop){
+const onTranscribeJobFinish = async (jobName, callbackFunction) => {
+  let inProgress = true;
+
+  while (inProgress) {
     await sleep(20000);
-    let job = transcribeService.getTranscriptionJob(fileName, (err, data) => {
-      let status = data.TranscriptionJobStatus;
-      if( status === 'COMPLETED') {
-        loop = false;
-        return data.Transcript.TranscriptFileUri;
-      } else if (status === 'FAILED') {
-            loop = false;
-            throw err;
-          }
+
+    transcribeService.getJob(jobName, (err, data) => {
+      if (err) {
+        throw err;
+      } else {
+        let status = data.TranscriptionJob.TranscriptionJobStatus;
+
+        if (status === 'COMPLETED') {
+          inProgress = false;
+          callbackFunction(true);
+        } else if (status === 'FAILED') {
+          inProgress = false;
+          callbackFunction(false);
+        }
+      }
     });
   }
 }
 
-const sleep = (ms) => {
-  return new Promise(resolve => {
-      setTimeout(resolve, ms);
-  });
-};
-
-const uploadToBucket = (fileName, file) => {
-  let filePath = saveFileLocally.saveFileLocally(file, fileName);
-  return await s3Service.uploadFile(process.env.AUDIO_BUCKET, 'audios', filePath);
+const extractTranscriptionFromTranscriptionFile = (filePath) => {
+  // Not implemented
 }
 
-const callbackTranscribe = (err, data) => {
-  if (err) console.log(err, err.stack);
-  else {
-    console.log("Success", data);
-  }
-};
+const onComprehendJobFinish = async (jobName, callbackFunction) => {
+  // Not implemented
+}
 
-const callbackComprehend = (err, data) => {
-  if (err) console.log(err, err.stack);
-  else {
-    console.log("Success", data);
-    return data;
-  }
+const sleep = (ms) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 };
 
 module.exports = { initSummarization };

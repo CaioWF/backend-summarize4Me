@@ -18,4 +18,12 @@ const createJob = (jobName, languageCode, mediaFileUri, callbackFunction) => {
   transcribeService.startTranscriptionJob(params, callbackFunction);
 };
 
-module.exports = { createJob };
+const getJob = (jobName, callbackFunction) => {
+  let params = {
+    TranscriptionJobName: jobName
+  };
+
+  transcribeService.getTranscriptionJob(params, callbackFunction);
+};
+
+module.exports = { createJob, getJob };

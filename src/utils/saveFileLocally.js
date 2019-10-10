@@ -1,7 +1,7 @@
 const fileUpload = require('express-fileupload');
 
-const saveFileLocallyFromRequest = (fileRequested, newName) => {
-    let filePath = 'C:\\Users\\publi\\Downloads\\test\\' + newName + '.' + getFileExtension(fileRequested.name);
+const saveFileLocallyFromRequest = (file, newFileName) => {
+    let filePath = 'C:\\Users\\publi\\Downloads\\test\\' + newFileName + '.' + getFileExtension(file.name);
 
     file.mv(filePath, (err) => {
         if (err)
@@ -15,4 +15,4 @@ const getFileExtension = (fileName) => {
     return fileName.split('.').pop();
 }
 
-module.exports = { saveFileLocally }
+module.exports = { saveFileLocallyFromRequest };

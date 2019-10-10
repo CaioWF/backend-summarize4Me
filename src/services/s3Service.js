@@ -3,19 +3,28 @@ var fs = require('fs');
 var path = require('path');
 var s3 = new aws.S3({ region: 'us-east-2' });
 
-const uploadFile = async (bucketName, folderName, filePath) => {
-    let s3FileLocation = bucketName + '/' + folderName;
-    let s3FileName = path.basename(filePath);
+const uploadFile = (bucketName, key, filePath) => {
     let fileStream = fs.createReadStream(filePath);
 
-    let params = { Bucket: s3FileLocation, Key: s3FileName, Body: fileStream };
+    let params = { Bucket: bucketName, Key: key, Body: fileStream };
 
-    await s3.upload(params, (err, data) => {
+    s3.upload(params, (err, data) => {
         if (err)
             console.log(err);
     });
 
-    return 's3://' + s3FileLocation + '/' + s3FileName;
+    return 's3://' + bucketName + '/' + key;
 }
 
-module.exports = { uploadFile }
+const downloadFile = (bucketName, key, filePath) => {
+    const params = { Bucket: bucketName, Key: key };
+
+    s3.getObject(params, (err, data) => {
+        if (err)
+            throw err;
+
+        fs.writeFileSync(filePath, data.Body.toString());
+    });
+};
+
+module.exports = { uploadFile, downloadFile }
